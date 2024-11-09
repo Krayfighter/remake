@@ -46,3 +46,26 @@ becomes
 ```bash -c "echo expr"```
 
 
+## Building and Installation
+
+### Dependencies
+
+#### Runtime
+bash
+unix tools (optional for build instructions)
+
+#### Compiletime
+rust (nightly)
+cargo
+
+### Building
+git clone https://github.com/Krayfighter/remake.git
+cd remake
+cargo build --release
+
+### Installing
+
+the remake binary can be added to the system directories
+or the target/release directory can be added to PATH
+
+
