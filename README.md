@@ -52,10 +52,12 @@ becomes
 
 #### Runtime
 bash
+
 unix tools (optional for build instructions)
 
 #### Compiletime
 rust (nightly)
+
 cargo
 
 ### Building
