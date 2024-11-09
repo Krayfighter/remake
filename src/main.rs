@@ -128,7 +128,7 @@ fn parse_build_instructions<'a>(
 				}
 			}
 			_ => {
-				if !inside_token { inside_token = true; token_start = start + index; }
+				if !inside_token { inside_token = true; inside_line = true; token_start = start + index; }
 			}
 		}
 	}
@@ -369,20 +369,36 @@ impl BuildTree {
 
 fn main() -> Result<()> {
 
-	let mut args = std::env::args();
+	let args = std::env::args();
 
 	if args.len() == 1 {
 		eprintln!("Error: missing one positional argument {{ target }}");
 		bail!("Invalid Invocation");
 	}
-
-	if args.len() > 2 {
-		eprintln!("Error: too many arguments, only one positional {{ target }} argument allowed");
-		bail!("Invalid Invocation");
+	let mut main_target: Option<String> = None;
+	let mut debug = cfg!(debug_assertions);
+	for arg in args.skip(1) {
+		if arg.starts_with('-') {
+			match arg.as_str() {
+				"--debug" => debug = true,
+				_ => bail!("FATAL: unrecognized argument: {}", arg)
+			}
+		}
+		else {
+			if main_target.is_some() { bail!("FATAL: cannot have 2 main targets"); }
+			main_target = Some(arg);
+		}
 	}
 
-	let main_target = args.nth(1)
-		.expect("FATAL: unable to fetch command arg");
+	let main_target = main_target.expect("FATAL: must run with a main target");
+
+	// if args.len() > 2 {
+	// 	eprintln!("Error: too many arguments, only one positional {{ target }} argument allowed");
+	// 	bail!("Invalid Invocation");
+	// }
+
+	// let main_target = args.nth(1)
+	// 	.expect("FATAL: unable to fetch command arg");
 
 	let mut globals = std::collections::HashMap::<String, String>::new();
 	
@@ -394,7 +410,11 @@ fn main() -> Result<()> {
 		.as_str(), &mut globals
 	)?;
 
-	eprintln!("DBG: globals {{{:#?}}}", globals);
+	// TODO do not pipe the stdout of the main target
+	if debug {
+		eprintln!("DBG: globals {{{:#?}}}", globals);
+		eprintln!("DBG: build targets {{{:#?}}}", targets);
+	}
 
 	if let Some((target_index, _target_ref)) = targets.iter()
 		.enumerate().find(|(_index, target_ref)| target_ref.name == main_target)
@@ -402,6 +422,8 @@ fn main() -> Result<()> {
 		let build_tree = BuildTree::new(
 			target_index, &mut targets
 		)?;
+
+		if debug { eprintln!("DBG: build tree {{{:#?}}}", build_tree); }
 
 		build_tree.build();
 	}else {

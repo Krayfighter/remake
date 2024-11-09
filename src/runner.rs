@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::{Read, Write}};
+use std::{collections::HashMap, io::Read};
 
 use anyhow::Result;
 
@@ -8,14 +8,15 @@ use anyhow::Result;
 pub fn shell_command(command_str: &str) -> std::process::Command {
 	let mut command =  std::process::Command::new("bash");
 	command.arg("-c")
-		.arg(command_str)
-		.stdin(std::process::Stdio::piped())
-		.stdout(std::process::Stdio::piped());
+		.arg(command_str);
+		// .stdin(std::process::Stdio::piped());
+		// .stdout(std::process::Stdio::piped());
 
 	return command;
 }
 
 pub fn await_command_output(mut cmd: std::process::Command) -> Result<String> {
+	cmd.stdout(std::process::Stdio::piped());
 	let mut output = String::new();
 
 	let mut child = cmd.spawn()?;
@@ -81,11 +82,18 @@ impl BuildInstruction {
 	}
 
 	pub fn execute(&self) -> Result<()> {
-		let _command_output = await_command_output(
-			shell_command(self.command_string.as_str())
-		)?;
+		// let _command_output = await_command_output(
+			// shell_command(self.command_string.as_str())
+		shell_command(self.command_string.as_str())
+			.spawn()?.wait()?;
+		// )?;
 		return Ok(());
 	}
+	// pub fn execute_unpiped(&self) -> Result<()> {
+	// 	let _exit_status = shell_command(self.command_string.as_str())
+	// 		.spawn()?.wait()?;
+	// 	return Ok(());
+	// }
 }
 
 
